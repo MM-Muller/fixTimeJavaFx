@@ -7,6 +7,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import com.fixtime.fixtimejavafx.view.ClienteView;
 import com.fixtime.fixtimejavafx.view.VeiculoView;
+import com.fixtime.fixtimejavafx.view.OficinaView;
 
 public class MenuPrincipal extends Application {
     @Override
@@ -17,8 +18,11 @@ public class MenuPrincipal extends Application {
         Button btnVeiculo = new Button("Gerenciar Veículos");
         btnVeiculo.setOnAction(e -> new VeiculoView().start(new Stage()));
 
-        VBox root = new VBox(10, btnCliente, btnVeiculo);
-        Scene scene = new Scene(root, 300, 200);
+        Button btnOficina = new Button("Gerenciar Oficinas");
+        btnOficina.setOnAction(e -> new OficinaView().start(new Stage()));
+
+        VBox root = new VBox(10, btnCliente, btnVeiculo, btnOficina);
+        Scene scene = new Scene(root, 300, 250);
         stage.setTitle("Menu Principal - FixTime");
         stage.setScene(scene);
         stage.show();
