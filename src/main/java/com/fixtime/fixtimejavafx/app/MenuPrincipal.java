@@ -37,7 +37,6 @@ public class MenuPrincipal extends Application {
     }
 
     private HBox createMenuButtons() {
-        // Botões de navegação
         Button btnCliente = new Button("Gerenciar Clientes");
         btnCliente.setOnAction(e -> showClienteView());
         btnCliente.setStyle("-fx-font-size: 14px; -fx-padding: 8 15;");

@@ -11,12 +11,13 @@ import com.fixtime.fixtimejavafx.model.Cliente;
 import com.fixtime.fixtimejavafx.persistence.ClienteDAO;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClienteView {
     private ArrayList<Cliente> lista = new ArrayList<>();
     private TableView<Cliente> tabela = new TableView<>();
 
-    // O método principal agora retorna um Parent, não mais um void e não recebe Stage
     public Parent createView() {
 
         carregarClientes();
@@ -24,18 +25,37 @@ public class ClienteView {
 
         Label lblNome = new Label("Nome:");
         TextField txtNome = new TextField();
+        txtNome.setPromptText("Nome completo do cliente");
 
         Label lblCPF = new Label("CPF:");
         TextField txtCPF = new TextField();
+        txtCPF.setPromptText("CPF (somente números)");
+        txtCPF.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,11}")) {
+                return change;
+            }
+            return null;
+        }));
 
         Label lblTelefone = new Label("Telefone:");
         TextField txtTelefone = new TextField();
+        txtTelefone.setPromptText("Telefone (ex: DD9XXXXXXXX)");
+        txtTelefone.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,11}")) {
+                return change;
+            }
+            return null;
+        }));
 
         Label lblEmail = new Label("Email:");
         TextField txtEmail = new TextField();
+        txtEmail.setPromptText("E-mail do cliente");
 
         Label lblSenha = new Label("Senha:");
         PasswordField txtSenha = new PasswordField();
+        txtSenha.setPromptText("Senha para acesso");
 
         Button btnSalvar = new Button("Salvar");
         btnSalvar.setOnAction(e -> {
@@ -44,16 +64,56 @@ public class ClienteView {
                 alert("Preencha todos os campos.");
                 return;
             }
+
+            String cpf = txtCPF.getText();
+            String telefone = txtTelefone.getText();
+            String email = txtEmail.getText();
+
+            if (!cpf.matches("\\d{11}")) {
+                alert("CPF inválido. Deve conter exatamente 11 dígitos numéricos.");
+                return;
+            }
+
+            if (!telefone.matches("\\d{10,11}")) {
+                alert("Telefone inválido. Deve conter 10 ou 11 dígitos numéricos (com DDD).");
+                return;
+            }
+
+            Pattern emailPattern = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
+            Matcher emailMatcher = emailPattern.matcher(email);
+            if (!emailMatcher.matches()) {
+                alert("Formato de e-mail inválido.");
+                return;
+            }
+
+            if (lista.stream().anyMatch(c -> c.getCpf().equals(cpf))) {
+                alert("CPF já cadastrado.");
+                return;
+            }
+            if (lista.stream().anyMatch(c -> c.getEmail().equalsIgnoreCase(email))) {
+                alert("E-mail já cadastrado.");
+                return;
+            }
+
+
+            boolean sucessoNoSalvamento = false;
             try {
-                Cliente cliente = new Cliente(lista.size() + 1, txtNome.getText(), txtCPF.getText(),
-                        txtTelefone.getText(), txtEmail.getText(), txtSenha.getText());
+                Cliente cliente = new Cliente(lista.size() + 1, txtNome.getText(), cpf,
+                        telefone, email, txtSenha.getText());
                 lista.add(cliente);
                 ClienteDAO.salvar(lista);
-                atualizarTabela();
-                limparCampos(txtNome, txtCPF, txtTelefone, txtEmail, txtSenha);
+                sucessoNoSalvamento = true;
                 alertInfo("Cliente salvo com sucesso!");
             } catch (Exception ex) {
                 alert("Erro ao salvar: " + ex.getMessage());
+                ex.printStackTrace();
+            } finally {
+                if (sucessoNoSalvamento) {
+                    atualizarTabela();
+                    limparCampos(txtNome, txtCPF, txtTelefone, txtEmail, txtSenha);
+                } else {
+                    System.out.println("Tentativa de salvar cliente falhou.");
+                }
             }
         });
 
@@ -76,7 +136,7 @@ public class ClienteView {
 
         TableColumn<Cliente, String> colNome = new TableColumn<>("Nome");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colNome.setPrefWidth(120); // Define largura preferencial
+        colNome.setPrefWidth(120);
 
         TableColumn<Cliente, String> colEmail = new TableColumn<>("Email");
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
@@ -98,12 +158,11 @@ public class ClienteView {
         form.setAlignment(Pos.TOP_LEFT);
         form.getChildren().addAll(lblNome, txtNome, lblCPF, txtCPF, lblTelefone, txtTelefone,
                 lblEmail, txtEmail, lblSenha, txtSenha, btnSalvar, btnExcluir);
-        txtNome.setMaxWidth(200);
-        txtCPF.setMaxWidth(200);
-        txtTelefone.setMaxWidth(200);
-        txtEmail.setMaxWidth(200);
-        txtSenha.setMaxWidth(200);
-
+        txtNome.setMaxWidth(250);
+        txtCPF.setMaxWidth(250);
+        txtTelefone.setMaxWidth(250);
+        txtEmail.setMaxWidth(250);
+        txtSenha.setMaxWidth(250);
 
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);
@@ -138,7 +197,7 @@ public class ClienteView {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setContentText(msg);
         a.setHeaderText(null);
-        a.setTitle("Erro");
+        a.setTitle("Erro de Validação");
         a.showAndWait();
     }
 
