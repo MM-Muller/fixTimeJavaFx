@@ -11,12 +11,13 @@ import com.fixtime.fixtimejavafx.model.Oficina;
 import com.fixtime.fixtimejavafx.persistence.OficinaDAO;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OficinaView {
     private ArrayList<Oficina> lista = new ArrayList<>();
     private TableView<Oficina> tabela = new TableView<>();
 
-    // O método principal agora retorna um Parent, não mais um void e não recebe Stage
     public Parent createView() {
 
         carregarOficinas();
@@ -30,16 +31,37 @@ public class OficinaView {
         cmbCategoria.setPromptText("Selecione a Categoria");
 
         TextField txtCnpj = new TextField();
-        txtCnpj.setPromptText("CNPJ (ex: XX.XXX.XXX/XXXX-XX)");
+        txtCnpj.setPromptText("CNPJ (somente números)");
+        txtCnpj.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,14}")) { // CNPJ tem 14 dígitos numéricos
+                return change;
+            }
+            return null;
+        }));
 
         TextField txtTelefone = new TextField();
-        txtTelefone.setPromptText("Telefone (ex: (XX) XXXX-XXXX)");
+        txtTelefone.setPromptText("Telefone (ex: DD9XXXXXXXX)");
+        txtTelefone.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,11}")) {
+                return change;
+            }
+            return null;
+        }));
 
         TextField txtEmail = new TextField();
         txtEmail.setPromptText("E-mail");
 
         TextField txtCep = new TextField();
-        txtCep.setPromptText("CEP (ex: XXXXX-XXX)");
+        txtCep.setPromptText("CEP (somente números)");
+        txtCep.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,8}")) { // CEP tem 8 dígitos numéricos
+                return change;
+            }
+            return null;
+        }));
 
         Button btnSalvar = new Button("Salvar");
         btnSalvar.setOnAction(e -> {
@@ -48,17 +70,51 @@ public class OficinaView {
                 alert("Preencha todos os campos.");
                 return;
             }
+
+            String cnpj = txtCnpj.getText();
+            String telefone = txtTelefone.getText();
+            String email = txtEmail.getText();
+            String cep = txtCep.getText();
+
+            if (!cnpj.matches("\\d{14}")) {
+                alert("CNPJ inválido. Deve conter exatamente 14 dígitos numéricos.");
+                return;
+            }
+
+            if (!telefone.matches("\\d{10,11}")) {
+                alert("Telefone inválido. Deve conter 10 ou 11 dígitos numéricos (com DDD).");
+                return;
+            }
+
+            Pattern emailPattern = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
+            Matcher emailMatcher = emailPattern.matcher(email);
+            if (!emailMatcher.matches()) {
+                alert("Formato de e-mail inválido.");
+                return;
+            }
+
+            if (!cep.matches("\\d{8}")) {
+                alert("CEP inválido. Deve conter exatamente 8 dígitos numéricos.");
+                return;
+            }
+
+            boolean sucessoNoSalvamento = false;
             try {
                 Oficina o = new Oficina(lista.size() + 1, txtNome.getText(), cmbCategoria.getValue(),
-                        txtCnpj.getText(), txtTelefone.getText(), txtEmail.getText(), txtCep.getText());
+                        cnpj, telefone, email, cep);
                 lista.add(o);
                 OficinaDAO.salvar(lista);
-                atualizarTabela();
-                limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep);
-                cmbCategoria.setValue(null);
+                sucessoNoSalvamento = true;
                 alertInfo("Oficina salva com sucesso!");
             } catch (Exception ex) {
                 alert("Erro ao salvar: " + ex.getMessage());
+                ex.printStackTrace();
+            } finally {
+                if (sucessoNoSalvamento) {
+                    atualizarTabela();
+                    limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep);
+                    cmbCategoria.setValue(null);
+                }
             }
         });
 
@@ -121,7 +177,6 @@ public class OficinaView {
         txtEmail.setMaxWidth(250);
         txtCep.setMaxWidth(250);
 
-
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);
         viewRoot.setCenter(tabela);
@@ -155,7 +210,7 @@ public class OficinaView {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setContentText(msg);
         a.setHeaderText(null);
-        a.setTitle("Erro");
+        a.setTitle("Erro de Validação");
         a.showAndWait();
     }
 
