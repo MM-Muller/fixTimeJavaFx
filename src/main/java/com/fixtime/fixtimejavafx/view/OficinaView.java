@@ -1,12 +1,12 @@
 package com.fixtime.fixtimejavafx.view;
 
-import javafx.scene.Parent; // Importação para o tipo Parent
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
-import javafx.collections.FXCollections; // Necessário para FXCollections.observableArrayList
-import javafx.geometry.Insets; // Para padding
-import javafx.geometry.Pos;   // Para alinhamento
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import com.fixtime.fixtimejavafx.model.Oficina;
 import com.fixtime.fixtimejavafx.persistence.OficinaDAO;
 
@@ -19,11 +19,9 @@ public class OficinaView {
     // O método principal agora retorna um Parent, não mais um void e não recebe Stage
     public Parent createView() {
 
-        // Carrega as oficinas e atualiza a tabela ao criar a view
         carregarOficinas();
-        atualizarTabela(); // Garante que a tabela já vem populada
+        atualizarTabela();
 
-        // --- Componentes da UI ---
         TextField txtNome = new TextField();
         txtNome.setPromptText("Nome da Oficina");
 
@@ -57,7 +55,7 @@ public class OficinaView {
                 OficinaDAO.salvar(lista);
                 atualizarTabela();
                 limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep);
-                cmbCategoria.setValue(null); // Limpa a seleção do ComboBox
+                cmbCategoria.setValue(null);
                 alertInfo("Oficina salva com sucesso!");
             } catch (Exception ex) {
                 alert("Erro ao salvar: " + ex.getMessage());
@@ -81,7 +79,6 @@ public class OficinaView {
             }
         });
 
-        // --- Configuração da Tabela ---
         TableColumn<Oficina, String> colNome = new TableColumn<>("Nome");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colNome.setPrefWidth(150);
@@ -103,12 +100,11 @@ public class OficinaView {
         colCep.setPrefWidth(80);
 
         tabela.getColumns().addAll(colNome, colCategoria, colTelefone, colEmail, colCep);
-        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Ajusta colunas automaticamente
+        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // --- Layout dos Componentes ---
-        VBox form = new VBox(10); // Espaçamento de 10px entre os elementos do formulário
-        form.setPadding(new Insets(20)); // Padding ao redor do formulário
-        form.setAlignment(Pos.TOP_LEFT); // Alinha o formulário ao topo/esquerda
+        VBox form = new VBox(10);
+        form.setPadding(new Insets(20));
+        form.setAlignment(Pos.TOP_LEFT);
         form.getChildren().addAll(
                 new Label("Nome:"), txtNome,
                 new Label("Categoria:"), cmbCategoria,
@@ -118,7 +114,6 @@ public class OficinaView {
                 new Label("CEP:"), txtCep,
                 btnSalvar, btnExcluir
         );
-        // Definir largura preferencial para os TextFields e ComboBox
         txtNome.setMaxWidth(250);
         cmbCategoria.setMaxWidth(250);
         txtCnpj.setMaxWidth(250);
@@ -127,21 +122,18 @@ public class OficinaView {
         txtCep.setMaxWidth(250);
 
 
-        // BorderPane como layout raiz para esta View
         BorderPane viewRoot = new BorderPane();
-        viewRoot.setLeft(form); // Coloca o formulário à esquerda
-        viewRoot.setCenter(tabela); // Coloca a tabela no centro
+        viewRoot.setLeft(form);
+        viewRoot.setCenter(tabela);
 
-        // Opcional: Adicionar um título ou cabeçalho para a view de oficinas
         Label titleLabel = new Label("Gerenciamento de Oficinas");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 10px;");
-        BorderPane.setAlignment(titleLabel, Pos.CENTER); // Centraliza o título
+        BorderPane.setAlignment(titleLabel, Pos.CENTER);
         viewRoot.setTop(titleLabel);
 
-        return viewRoot; // Retorna o BorderPane que contém toda a UI do OficinaView
+        return viewRoot;
     }
 
-    // --- Métodos de Apoio ---
     private void carregarOficinas() {
         try {
             lista = OficinaDAO.carregar();
