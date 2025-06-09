@@ -8,7 +8,9 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import com.fixtime.fixtimejavafx.model.Veiculo;
+import com.fixtime.fixtimejavafx.model.Cliente;
 import com.fixtime.fixtimejavafx.persistence.VeiculoDAO;
+import com.fixtime.fixtimejavafx.persistence.ClienteDAO;
 
 import java.time.Year;
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class VeiculoView {
         }));
 
         TextField txtCor = new TextField();
-        txtCor.setPromptText("Cor do veículo (apenas letras)");
+        txtCor.setPromptText("Cor do veículo");
         txtCor.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             if (newText.matches("[a-zA-Z\\s]*")) {
@@ -55,7 +57,7 @@ public class VeiculoView {
         }));
 
         TextField txtPlaca = new TextField();
-        txtPlaca.setPromptText("Placa (ex: ABC1234 ou ABC1D23)");
+        txtPlaca.setPromptText("Placa: ABC1234 ou ABC1D23");
         txtPlaca.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText().toUpperCase();
             if (newText.matches("[A-Z0-9]{0,7}")) {
@@ -65,7 +67,7 @@ public class VeiculoView {
         }));
 
         TextField txtKm = new TextField();
-        txtKm.setPromptText("Quilometragem (ex: 15000.5)");
+        txtKm.setPromptText("Quilometragem");
         txtKm.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             if (newText.matches("\\d*\\.?\\d*")) {
@@ -74,11 +76,43 @@ public class VeiculoView {
             return null;
         }));
 
+        TextField txtCpfDono = new TextField();
+        txtCpfDono.setPromptText("CPF do dono");
+        txtCpfDono.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,11}")) {
+                return change;
+            }
+            return null;
+        }));
+
         Button btnSalvar = new Button("Salvar");
         btnSalvar.setOnAction(e -> {
             if (cmbTipo.getValue() == null || txtMarca.getText().isEmpty() || txtModelo.getText().isEmpty() ||
-                    txtAno.getText().isEmpty() || txtCor.getText().isEmpty() || txtPlaca.getText().isEmpty() || txtKm.getText().isEmpty()) {
+                    txtAno.getText().isEmpty() || txtCor.getText().isEmpty() || txtPlaca.getText().isEmpty() || 
+                    txtKm.getText().isEmpty() || txtCpfDono.getText().isEmpty()) {
                 alert("Preencha todos os campos.");
+                return;
+            }
+
+            String cpfDono = txtCpfDono.getText();
+            if (!cpfDono.matches("\\d{11}")) {
+                alert("CPF inválido. Deve conter exatamente 11 dígitos numéricos.");
+                return;
+            }
+
+            // Verificar se o cliente existe
+            try {
+                ArrayList<Cliente> clientes = ClienteDAO.carregar();
+                boolean clienteExiste = clientes.stream()
+                    .anyMatch(c -> c.getCpf().equals(cpfDono));
+                
+                if (!clienteExiste) {
+                    alert("Não existe cliente cadastrado com este CPF.");
+                    return;
+                }
+            } catch (Exception ex) {
+                alert("Erro ao verificar CPF: " + ex.getMessage());
                 return;
             }
 
@@ -112,7 +146,7 @@ public class VeiculoView {
                 }
 
                 Veiculo v = new Veiculo(lista.size() + 1, cmbTipo.getValue(), txtMarca.getText(), txtModelo.getText(),
-                        ano, cor, placa, km);
+                        ano, cor, placa, km, cpfDono);
                 lista.add(v);
                 VeiculoDAO.salvar(lista);
                 sucessoNoSalvamento = true;
@@ -125,7 +159,7 @@ public class VeiculoView {
             } finally {
                 if (sucessoNoSalvamento) {
                     atualizarTabela();
-                    limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm);
+                    limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
                     cmbTipo.setValue(null);
                 }
             }
@@ -176,7 +210,11 @@ public class VeiculoView {
         colKm.setCellValueFactory(new PropertyValueFactory<>("km"));
         colKm.setPrefWidth(80);
 
-        tabela.getColumns().addAll(colTipo, colMarca, colModelo, colPlaca, colAno, colCor, colKm);
+        TableColumn<Veiculo, String> colCpfDono = new TableColumn<>("CPF do Dono");
+        colCpfDono.setCellValueFactory(new PropertyValueFactory<>("cpfDono"));
+        colCpfDono.setPrefWidth(120);
+
+        tabela.getColumns().addAll(colTipo, colMarca, colModelo, colPlaca, colAno, colCor, colKm, colCpfDono);
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         VBox form = new VBox(10);
@@ -190,6 +228,7 @@ public class VeiculoView {
                 new Label("Cor:"), txtCor,
                 new Label("Placa:"), txtPlaca,
                 new Label("Km:"), txtKm,
+                new Label("CPF do Dono:"), txtCpfDono,
                 btnSalvar, btnExcluir
         );
         cmbTipo.setMaxWidth(250);
@@ -199,6 +238,7 @@ public class VeiculoView {
         txtCor.setMaxWidth(250);
         txtPlaca.setMaxWidth(250);
         txtKm.setMaxWidth(250);
+        txtCpfDono.setMaxWidth(250);
 
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);

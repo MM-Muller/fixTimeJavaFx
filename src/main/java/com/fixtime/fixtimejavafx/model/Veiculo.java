@@ -3,6 +3,7 @@ package com.fixtime.fixtimejavafx.model;
 import java.io.Serializable;
 
 public class Veiculo implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int id;
     private String tipo;
     private String marca;
@@ -11,8 +12,9 @@ public class Veiculo implements Serializable {
     private String cor;
     private String placa;
     private double km;
+    private String cpfDono;
 
-    public Veiculo(int id, String tipo, String marca, String modelo, int ano, String cor, String placa, double km) {
+    public Veiculo(int id, String tipo, String marca, String modelo, int ano, String cor, String placa, double km, String cpfDono) {
         this.id = id;
         this.tipo = tipo;
         this.marca = marca;
@@ -21,6 +23,7 @@ public class Veiculo implements Serializable {
         this.cor = cor;
         this.placa = placa;
         this.km = km;
+        this.cpfDono = cpfDono;
     }
 
     public int getId() {
@@ -77,5 +80,12 @@ public class Veiculo implements Serializable {
     }
     public void setKm(double km) {
         this.km = km;
+    }
+
+    public String getCpfDono() {
+        return cpfDono;
+    }
+    public void setCpfDono(String cpfDono) {
+        this.cpfDono = cpfDono;
     }
 }

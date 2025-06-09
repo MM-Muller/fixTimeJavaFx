@@ -30,7 +30,7 @@ public class MenuPrincipal extends Application {
 
         showMainMenu();
 
-        Scene scene = new Scene(rootLayout, 950, 650);
+        Scene scene = new Scene(rootLayout, 950, 700);
         primaryStage.setTitle("Sistema FixTime");
         primaryStage.setScene(scene);
         primaryStage.show();
