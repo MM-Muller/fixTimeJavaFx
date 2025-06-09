@@ -19,7 +19,6 @@ public class OficinaView {
     private TableView<Oficina> tabela = new TableView<>();
 
     public Parent createView() {
-
         carregarOficinas();
         atualizarTabela();
 
@@ -34,7 +33,7 @@ public class OficinaView {
         txtCnpj.setPromptText("CNPJ (somente números)");
         txtCnpj.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d{0,14}")) { // CNPJ tem 14 dígitos numéricos
+            if (newText.matches("\\d{0,14}")) {
                 return change;
             }
             return null;
@@ -57,16 +56,23 @@ public class OficinaView {
         txtCep.setPromptText("CEP (somente números)");
         txtCep.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d{0,8}")) { // CEP tem 8 dígitos numéricos
+            if (newText.matches("\\d{0,8}")) {
                 return change;
             }
             return null;
         }));
 
+        TextField txtEndereco = new TextField();
+        txtEndereco.setPromptText("Endereço completo");
+
+        PasswordField txtSenha = new PasswordField();
+        txtSenha.setPromptText("Senha para acesso");
+
         Button btnSalvar = new Button("Salvar");
         btnSalvar.setOnAction(e -> {
             if (txtNome.getText().isEmpty() || cmbCategoria.getValue() == null || txtCnpj.getText().isEmpty() ||
-                    txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty()) {
+                    txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty() ||
+                    txtEndereco.getText().isEmpty() || txtSenha.getText().isEmpty()) {
                 alert("Preencha todos os campos.");
                 return;
             }
@@ -101,7 +107,7 @@ public class OficinaView {
             boolean sucessoNoSalvamento = false;
             try {
                 Oficina o = new Oficina(lista.size() + 1, txtNome.getText(), cmbCategoria.getValue(),
-                        cnpj, telefone, email, cep);
+                        cnpj, telefone, email, cep, txtEndereco.getText(), txtSenha.getText());
                 lista.add(o);
                 OficinaDAO.salvar(lista);
                 sucessoNoSalvamento = true;
@@ -112,7 +118,8 @@ public class OficinaView {
             } finally {
                 if (sucessoNoSalvamento) {
                     atualizarTabela();
-                    limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep);
+                    limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
+                    txtSenha.clear();
                     cmbCategoria.setValue(null);
                 }
             }
@@ -137,26 +144,35 @@ public class OficinaView {
 
         TableColumn<Oficina, String> colNome = new TableColumn<>("Nome");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colNome.setPrefWidth(150);
+        colNome.setPrefWidth(110);
 
         TableColumn<Oficina, String> colCategoria = new TableColumn<>("Categoria");
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colCategoria.setPrefWidth(120);
 
+        TableColumn<Oficina, String> colCnpj = new TableColumn<>("CNPJ");
+        colCnpj.setCellValueFactory(new PropertyValueFactory<>("cnpj"));
+        colCnpj.setPrefWidth(120);
+
         TableColumn<Oficina, String> colTelefone = new TableColumn<>("Telefone");
         colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
         colTelefone.setPrefWidth(100);
-
-        TableColumn<Oficina, String> colEmail = new TableColumn<>("Email");
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colEmail.setPrefWidth(150);
 
         TableColumn<Oficina, String> colCep = new TableColumn<>("CEP");
         colCep.setCellValueFactory(new PropertyValueFactory<>("cep"));
         colCep.setPrefWidth(80);
 
-        tabela.getColumns().addAll(colNome, colCategoria, colTelefone, colEmail, colCep);
-        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        TableColumn<Oficina, String> colEndereco = new TableColumn<>("Endereço");
+        colEndereco.setCellValueFactory(new PropertyValueFactory<>("endereco"));
+        colEndereco.setPrefWidth(110);
+
+        TableColumn<Oficina, String> colEmail = new TableColumn<>("Email");
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colEmail.setPrefWidth(110);
+
+        tabela.getColumns().addAll(colNome, colCategoria, colCnpj, colTelefone, colCep, colEndereco, colEmail);
+        tabela.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        tabela.setPrefWidth(800);
 
         VBox form = new VBox(10);
         form.setPadding(new Insets(20));
@@ -166,8 +182,10 @@ public class OficinaView {
                 new Label("Categoria:"), cmbCategoria,
                 new Label("CNPJ:"), txtCnpj,
                 new Label("Telefone:"), txtTelefone,
-                new Label("Email:"), txtEmail,
                 new Label("CEP:"), txtCep,
+                new Label("Endereço:"), txtEndereco,
+                new Label("Email:"), txtEmail,
+                new Label("Senha:"), txtSenha,
                 btnSalvar, btnExcluir
         );
         txtNome.setMaxWidth(250);
@@ -176,6 +194,8 @@ public class OficinaView {
         txtTelefone.setMaxWidth(250);
         txtEmail.setMaxWidth(250);
         txtCep.setMaxWidth(250);
+        txtEndereco.setMaxWidth(250);
+        txtSenha.setMaxWidth(250);
 
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);

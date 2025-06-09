@@ -188,11 +188,11 @@ public class VeiculoView {
 
         TableColumn<Veiculo, String> colMarca = new TableColumn<>("Marca");
         colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
-        colMarca.setPrefWidth(120);
+        colMarca.setPrefWidth(115);
 
         TableColumn<Veiculo, String> colModelo = new TableColumn<>("Modelo");
         colModelo.setCellValueFactory(new PropertyValueFactory<>("modelo"));
-        colModelo.setPrefWidth(150);
+        colModelo.setPrefWidth(115);
 
         TableColumn<Veiculo, String> colPlaca = new TableColumn<>("Placa");
         colPlaca.setCellValueFactory(new PropertyValueFactory<>("placa"));
@@ -215,7 +215,8 @@ public class VeiculoView {
         colCpfDono.setPrefWidth(120);
 
         tabela.getColumns().addAll(colTipo, colMarca, colModelo, colPlaca, colAno, colCor, colKm, colCpfDono);
-        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        tabela.setPrefWidth(800);
 
         VBox form = new VBox(10);
         form.setPadding(new Insets(20));
@@ -224,9 +225,9 @@ public class VeiculoView {
                 new Label("Tipo:"), cmbTipo,
                 new Label("Marca:"), txtMarca,
                 new Label("Modelo:"), txtModelo,
+                new Label("Placa:"), txtPlaca,
                 new Label("Ano:"), txtAno,
                 new Label("Cor:"), txtCor,
-                new Label("Placa:"), txtPlaca,
                 new Label("Km:"), txtKm,
                 new Label("CPF do Dono:"), txtCpfDono,
                 btnSalvar, btnExcluir
@@ -234,9 +235,9 @@ public class VeiculoView {
         cmbTipo.setMaxWidth(250);
         txtMarca.setMaxWidth(250);
         txtModelo.setMaxWidth(250);
+        txtPlaca.setMaxWidth(250);
         txtAno.setMaxWidth(250);
         txtCor.setMaxWidth(250);
-        txtPlaca.setMaxWidth(250);
         txtKm.setMaxWidth(250);
         txtCpfDono.setMaxWidth(250);
 
