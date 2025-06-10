@@ -12,7 +12,6 @@ public class Oficina implements Serializable {
     private String email;
     private String cep;
     private String endereco;
-    private String senha;
 
     public Oficina(int id, String nome, String categoria, String cnpj, String telefone, String email, String cep, String endereco) {
         this.id = id;
