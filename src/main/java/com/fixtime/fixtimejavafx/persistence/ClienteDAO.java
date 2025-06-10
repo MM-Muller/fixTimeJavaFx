@@ -5,7 +5,7 @@ import com.fixtime.fixtimejavafx.model.Cliente;
 import java.io.*;
 import java.util.ArrayList;
 
-public class ClienteDAO {
+public class ClienteDAO{
     private static final String FILE_NAME = System.getProperty("user.dir") + "/data/clientes.dat";
 
     public static void salvar(ArrayList<Cliente> clientes) throws IOException {
@@ -15,11 +15,10 @@ public class ClienteDAO {
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME));
         oos.writeObject(clientes);
         oos.close();
-
-        System.out.println("Arquivo salvo em: " + FILE_NAME);
     }
 
     public static ArrayList<Cliente> carregar() throws IOException, ClassNotFoundException {
+        // lê os bytes do arquivo e então transforma em objetos Cliente
         File file = new File(FILE_NAME);
         if (!file.exists()) return new ArrayList<>();
 
