@@ -2,7 +2,8 @@ package com.fixtime.fixtimejavafx.model;
 
 import java.io.Serializable;
 
-public class Oficina implements Serializable {// podem ser trasnformados em bytes
+public class Oficina implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int id;
     private String nome;
     private String categoria;
@@ -10,8 +11,10 @@ public class Oficina implements Serializable {// podem ser trasnformados em byte
     private String telefone;
     private String email;
     private String cep;
+    private String endereco;
+    private String senha;
 
-    public Oficina(int id, String nome, String categoria, String cnpj, String telefone, String email, String cep) {
+    public Oficina(int id, String nome, String categoria, String cnpj, String telefone, String email, String cep, String endereco, String senha) {
         this.id = id;
         this.nome = nome;
         this.categoria = categoria;
@@ -19,12 +22,13 @@ public class Oficina implements Serializable {// podem ser trasnformados em byte
         this.telefone = telefone;
         this.email = email;
         this.cep = cep;
+        this.endereco = endereco;
+        this.senha = senha;
     }
 
     public int getId() {
         return id;
     }
-
     public void setId(int id) {
         this.id = id;
     }
@@ -69,5 +73,19 @@ public class Oficina implements Serializable {// podem ser trasnformados em byte
     }
     public void setCep(String cep) {
         this.cep = cep;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 }

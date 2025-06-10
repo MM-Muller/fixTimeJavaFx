@@ -17,9 +17,9 @@ import java.util.regex.Pattern;
 public class OficinaView {
     private ArrayList<Oficina> lista = new ArrayList<>();
     private TableView<Oficina> tabela = new TableView<>();
+    private Oficina oficinaSelecionada = null;
 
     public Parent createView() {
-
         carregarOficinas();
         atualizarTabela();
 
@@ -34,7 +34,7 @@ public class OficinaView {
         txtCnpj.setPromptText("CNPJ (somente números)");
         txtCnpj.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d{0,14}")) { // CNPJ tem 14 dígitos numéricos
+            if (newText.matches("\\d{0,14}")) {
                 return change;
             }
             return null;
@@ -57,16 +57,37 @@ public class OficinaView {
         txtCep.setPromptText("CEP (somente números)");
         txtCep.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
-            if (newText.matches("\\d{0,8}")) { // CEP tem 8 dígitos numéricos
+            if (newText.matches("\\d{0,8}")) {
                 return change;
             }
             return null;
         }));
 
-        Button btnSalvar = new Button("Salvar");
-        btnSalvar.setOnAction(e -> {
+        TextField txtEndereco = new TextField();
+        txtEndereco.setPromptText("Endereço completo");
+
+        PasswordField txtSenha = new PasswordField();
+        txtSenha.setPromptText("Senha para acesso");
+
+        tabela.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                oficinaSelecionada = newSelection;
+                txtNome.setText(newSelection.getNome());
+                cmbCategoria.setValue(newSelection.getCategoria());
+                txtCnpj.setText(newSelection.getCnpj());
+                txtTelefone.setText(newSelection.getTelefone());
+                txtEmail.setText(newSelection.getEmail());
+                txtCep.setText(newSelection.getCep());
+                txtEndereco.setText(newSelection.getEndereco());
+                txtSenha.setText(newSelection.getSenha());
+            }
+        });
+
+        Button btnCadastrar = new Button("Cadastrar");
+        btnCadastrar.setOnAction(e -> {
             if (txtNome.getText().isEmpty() || cmbCategoria.getValue() == null || txtCnpj.getText().isEmpty() ||
-                    txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty()) {
+                    txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty() ||
+                    txtEndereco.getText().isEmpty() || txtSenha.getText().isEmpty()) {
                 alert("Preencha todos os campos.");
                 return;
             }
@@ -98,27 +119,88 @@ public class OficinaView {
                 return;
             }
 
-            boolean sucessoNoSalvamento = false;
             try {
                 Oficina o = new Oficina(lista.size() + 1, txtNome.getText(), cmbCategoria.getValue(),
-                        cnpj, telefone, email, cep);
+                        cnpj, telefone, email, cep, txtEndereco.getText(), txtSenha.getText());
                 lista.add(o);
                 OficinaDAO.salvar(lista);
-                sucessoNoSalvamento = true;
-                alertInfo("Oficina salva com sucesso!");
+                atualizarTabela();
+                limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
+                txtSenha.clear();
+                cmbCategoria.setValue(null);
+                alertInfo("Oficina cadastrada com sucesso!");
             } catch (Exception ex) {
-                alert("Erro ao salvar: " + ex.getMessage());
+                alert("Erro ao cadastrar: " + ex.getMessage());
                 ex.printStackTrace();
-            } finally {
-                if (sucessoNoSalvamento) {
-                    atualizarTabela();
-                    limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep);
-                    cmbCategoria.setValue(null);
-                }
             }
         });
 
-        Button btnExcluir = new Button("Excluir Selecionado");
+        Button btnEditar = new Button("Editar");
+        btnEditar.setOnAction(e -> {
+            if (oficinaSelecionada == null) {
+                alert("Selecione uma oficina para editar.");
+                return;
+            }
+
+            if (txtNome.getText().isEmpty() || cmbCategoria.getValue() == null || txtCnpj.getText().isEmpty() ||
+                    txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty() ||
+                    txtEndereco.getText().isEmpty() || txtSenha.getText().isEmpty()) {
+                alert("Preencha todos os campos.");
+                return;
+            }
+
+            String cnpj = txtCnpj.getText();
+            String telefone = txtTelefone.getText();
+            String email = txtEmail.getText();
+            String cep = txtCep.getText();
+
+            if (!cnpj.matches("\\d{14}")) {
+                alert("CNPJ inválido. Deve conter exatamente 14 dígitos numéricos.");
+                return;
+            }
+
+            if (!telefone.matches("\\d{10,11}")) {
+                alert("Telefone inválido. Deve conter 10 ou 11 dígitos numéricos (com DDD).");
+                return;
+            }
+
+            Pattern emailPattern = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
+            Matcher emailMatcher = emailPattern.matcher(email);
+            if (!emailMatcher.matches()) {
+                alert("Formato de e-mail inválido.");
+                return;
+            }
+
+            if (!cep.matches("\\d{8}")) {
+                alert("CEP inválido. Deve conter exatamente 8 dígitos numéricos.");
+                return;
+            }
+
+            try {
+                oficinaSelecionada.setNome(txtNome.getText());
+                oficinaSelecionada.setCategoria(cmbCategoria.getValue());
+                oficinaSelecionada.setCnpj(cnpj);
+                oficinaSelecionada.setTelefone(telefone);
+                oficinaSelecionada.setEmail(email);
+                oficinaSelecionada.setCep(cep);
+                oficinaSelecionada.setEndereco(txtEndereco.getText());
+                oficinaSelecionada.setSenha(txtSenha.getText());
+                OficinaDAO.salvar(lista);
+                tabela.getItems().clear();
+                tabela.setItems(FXCollections.observableArrayList(lista));
+                tabela.getSelectionModel().clearSelection();
+                limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
+                txtSenha.clear();
+                cmbCategoria.setValue(null);
+                oficinaSelecionada = null;
+                alertInfo("Oficina atualizada com sucesso!");
+            } catch (Exception ex) {
+                alert("Erro ao editar: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        Button btnExcluir = new Button("Excluir");
         btnExcluir.setOnAction(e -> {
             Oficina o = tabela.getSelectionModel().getSelectedItem();
             if (o != null) {
@@ -126,6 +208,10 @@ public class OficinaView {
                 try {
                     OficinaDAO.salvar(lista);
                     atualizarTabela();
+                    limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
+                    txtSenha.clear();
+                    cmbCategoria.setValue(null);
+                    oficinaSelecionada = null;
                     alertInfo("Oficina excluída com sucesso!");
                 } catch (Exception ex) {
                     alert("Erro ao excluir: " + ex.getMessage());
@@ -135,28 +221,46 @@ public class OficinaView {
             }
         });
 
+        Button btnLimpar = new Button("Limpar");
+        btnLimpar.setOnAction(e -> {
+            limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
+            txtSenha.clear();
+            cmbCategoria.setValue(null);
+            oficinaSelecionada = null;
+            tabela.getSelectionModel().clearSelection();
+        });
+
         TableColumn<Oficina, String> colNome = new TableColumn<>("Nome");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colNome.setPrefWidth(150);
+        colNome.setPrefWidth(110);
 
         TableColumn<Oficina, String> colCategoria = new TableColumn<>("Categoria");
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colCategoria.setPrefWidth(120);
 
+        TableColumn<Oficina, String> colCnpj = new TableColumn<>("CNPJ");
+        colCnpj.setCellValueFactory(new PropertyValueFactory<>("cnpj"));
+        colCnpj.setPrefWidth(120);
+
         TableColumn<Oficina, String> colTelefone = new TableColumn<>("Telefone");
         colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
         colTelefone.setPrefWidth(100);
-
-        TableColumn<Oficina, String> colEmail = new TableColumn<>("Email");
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colEmail.setPrefWidth(150);
 
         TableColumn<Oficina, String> colCep = new TableColumn<>("CEP");
         colCep.setCellValueFactory(new PropertyValueFactory<>("cep"));
         colCep.setPrefWidth(80);
 
-        tabela.getColumns().addAll(colNome, colCategoria, colTelefone, colEmail, colCep);
-        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        TableColumn<Oficina, String> colEndereco = new TableColumn<>("Endereço");
+        colEndereco.setCellValueFactory(new PropertyValueFactory<>("endereco"));
+        colEndereco.setPrefWidth(110);
+
+        TableColumn<Oficina, String> colEmail = new TableColumn<>("Email");
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colEmail.setPrefWidth(110);
+
+        tabela.getColumns().addAll(colNome, colCategoria, colCnpj, colTelefone, colCep, colEndereco, colEmail);
+        tabela.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        tabela.setPrefWidth(800);
 
         VBox form = new VBox(10);
         form.setPadding(new Insets(20));
@@ -166,9 +270,11 @@ public class OficinaView {
                 new Label("Categoria:"), cmbCategoria,
                 new Label("CNPJ:"), txtCnpj,
                 new Label("Telefone:"), txtTelefone,
-                new Label("Email:"), txtEmail,
                 new Label("CEP:"), txtCep,
-                btnSalvar, btnExcluir
+                new Label("Endereço:"), txtEndereco,
+                new Label("Email:"), txtEmail,
+                new Label("Senha:"), txtSenha,
+                new HBox(10, btnLimpar, btnCadastrar, btnEditar, btnExcluir)
         );
         txtNome.setMaxWidth(250);
         cmbCategoria.setMaxWidth(250);
@@ -176,6 +282,8 @@ public class OficinaView {
         txtTelefone.setMaxWidth(250);
         txtEmail.setMaxWidth(250);
         txtCep.setMaxWidth(250);
+        txtEndereco.setMaxWidth(250);
+        txtSenha.setMaxWidth(250);
 
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);
