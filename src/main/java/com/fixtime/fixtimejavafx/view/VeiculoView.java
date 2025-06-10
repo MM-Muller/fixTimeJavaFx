@@ -20,9 +20,9 @@ import java.util.regex.Pattern;
 public class VeiculoView {
     private ArrayList<Veiculo> lista = new ArrayList<>();
     private TableView<Veiculo> tabela = new TableView<>();
+    private Veiculo veiculoSelecionado = null;
 
     public Parent createView() {
-
         carregarVeiculos();
         atualizarTabela();
 
@@ -86,8 +86,23 @@ public class VeiculoView {
             return null;
         }));
 
-        Button btnSalvar = new Button("Salvar");
-        btnSalvar.setOnAction(e -> {
+        // Adicionar listener para seleção na tabela
+        tabela.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                veiculoSelecionado = newSelection;
+                cmbTipo.setValue(newSelection.getTipo());
+                txtMarca.setText(newSelection.getMarca());
+                txtModelo.setText(newSelection.getModelo());
+                txtAno.setText(String.valueOf(newSelection.getAno()));
+                txtCor.setText(newSelection.getCor());
+                txtPlaca.setText(newSelection.getPlaca());
+                txtKm.setText(String.valueOf(newSelection.getKm()));
+                txtCpfDono.setText(newSelection.getCpfDono());
+            }
+        });
+
+        Button btnCadastrar = new Button("Cadastrar");
+        btnCadastrar.setOnAction(e -> {
             if (cmbTipo.getValue() == null || txtMarca.getText().isEmpty() || txtModelo.getText().isEmpty() ||
                     txtAno.getText().isEmpty() || txtCor.getText().isEmpty() || txtPlaca.getText().isEmpty() || 
                     txtKm.getText().isEmpty() || txtCpfDono.getText().isEmpty()) {
@@ -135,7 +150,6 @@ public class VeiculoView {
                 return;
             }
 
-            boolean sucessoNoSalvamento = false;
             try {
                 int ano = Integer.parseInt(txtAno.getText());
                 double km = Double.parseDouble(txtKm.getText());
@@ -149,23 +163,107 @@ public class VeiculoView {
                         ano, cor, placa, km, cpfDono);
                 lista.add(v);
                 VeiculoDAO.salvar(lista);
-                sucessoNoSalvamento = true;
-                alertInfo("Veículo salvo com sucesso!");
+                atualizarTabela();
+                limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
+                cmbTipo.setValue(null);
+                alertInfo("Veículo cadastrado com sucesso!");
             } catch (NumberFormatException ex) {
                 alert("Erro de formato: Ano ou KM devem ser números válidos.");
             } catch (Exception ex) {
-                alert("Erro ao salvar: " + ex.getMessage());
+                alert("Erro ao cadastrar: " + ex.getMessage());
                 ex.printStackTrace();
-            } finally {
-                if (sucessoNoSalvamento) {
-                    atualizarTabela();
-                    limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
-                    cmbTipo.setValue(null);
-                }
             }
         });
 
-        Button btnExcluir = new Button("Excluir Selecionado");
+        Button btnEditar = new Button("Editar");
+        btnEditar.setOnAction(e -> {
+            if (veiculoSelecionado == null) {
+                alert("Selecione um veículo para editar.");
+                return;
+            }
+
+            if (cmbTipo.getValue() == null || txtMarca.getText().isEmpty() || txtModelo.getText().isEmpty() ||
+                    txtAno.getText().isEmpty() || txtCor.getText().isEmpty() || txtPlaca.getText().isEmpty() || 
+                    txtKm.getText().isEmpty() || txtCpfDono.getText().isEmpty()) {
+                alert("Preencha todos os campos.");
+                return;
+            }
+
+            String cpfDono = txtCpfDono.getText();
+            if (!cpfDono.matches("\\d{11}")) {
+                alert("CPF inválido. Deve conter exatamente 11 dígitos numéricos.");
+                return;
+            }
+
+            // Verificar se o cliente existe
+            try {
+                ArrayList<Cliente> clientes = ClienteDAO.carregar();
+                boolean clienteExiste = clientes.stream()
+                    .anyMatch(c -> c.getCpf().equals(cpfDono));
+                
+                if (!clienteExiste) {
+                    alert("Não existe cliente cadastrado com este CPF.");
+                    return;
+                }
+            } catch (Exception ex) {
+                alert("Erro ao verificar CPF: " + ex.getMessage());
+                return;
+            }
+
+            String placa = txtPlaca.getText().toUpperCase();
+            Pattern placaPattern = Pattern.compile("^[A-Z]{3}\\d[A-Z]\\d{2}$|^[A-Z]{3}\\d{4}$");
+            Matcher placaMatcher = placaPattern.matcher(placa);
+            if (!placaMatcher.matches()) {
+                alert("Formato de placa inválido. Use ABC1234 (antiga) ou ABC1D23 (Mercosul).");
+                return;
+            }
+
+            String cor = txtCor.getText().trim();
+            if (!cor.matches("[a-zA-Z\\s]+")) {
+                alert("Cor inválida. Deve conter apenas letras e espaços.");
+                return;
+            }
+
+            if (!txtAno.getText().matches("\\d{4}")) {
+                alert("Ano inválido. Deve conter 4 dígitos numéricos.");
+                return;
+            }
+
+            try {
+                int ano = Integer.parseInt(txtAno.getText());
+                double km = Double.parseDouble(txtKm.getText());
+
+                if (ano < 1900 || ano > 2030) {
+                    alert("Ano inválido. Deve estar entre 1900 e 2030.");
+                    return;
+                }
+
+                veiculoSelecionado.setTipo(cmbTipo.getValue());
+                veiculoSelecionado.setMarca(txtMarca.getText());
+                veiculoSelecionado.setModelo(txtModelo.getText());
+                veiculoSelecionado.setAno(ano);
+                veiculoSelecionado.setCor(cor);
+                veiculoSelecionado.setPlaca(placa);
+                veiculoSelecionado.setKm(km);
+                veiculoSelecionado.setCpfDono(cpfDono);
+
+                VeiculoDAO.salvar(lista);
+                tabela.getItems().clear();
+                tabela.setItems(FXCollections.observableArrayList(lista));
+                tabela.getSelectionModel().clearSelection();
+                limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
+                cmbTipo.setValue(null);
+                veiculoSelecionado = null;
+                alertInfo("Veículo atualizado com sucesso!");
+            } catch (NumberFormatException ex) {
+                alert("Erro de formato: Ano ou KM devem ser números válidos.");
+            } catch (Exception ex) {
+                alert("Erro ao editar: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        Button btnExcluir = new Button("Excluir");
         btnExcluir.setOnAction(e -> {
             Veiculo v = tabela.getSelectionModel().getSelectedItem();
             if (v != null) {
@@ -173,6 +271,9 @@ public class VeiculoView {
                 try {
                     VeiculoDAO.salvar(lista);
                     atualizarTabela();
+                    limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
+                    cmbTipo.setValue(null);
+                    veiculoSelecionado = null;
                     alertInfo("Veículo excluído com sucesso!");
                 } catch (Exception ex) {
                     alert("Erro ao excluir: " + ex.getMessage());
@@ -180,6 +281,14 @@ public class VeiculoView {
             } else {
                 alert("Selecione um veículo para excluir.");
             }
+        });
+
+        Button btnLimpar = new Button("Limpar");
+        btnLimpar.setOnAction(e -> {
+            limparCampos(txtMarca, txtModelo, txtAno, txtCor, txtPlaca, txtKm, txtCpfDono);
+            cmbTipo.setValue(null);
+            veiculoSelecionado = null;
+            tabela.getSelectionModel().clearSelection();
         });
 
         TableColumn<Veiculo, String> colTipo = new TableColumn<>("Tipo");
@@ -230,7 +339,7 @@ public class VeiculoView {
                 new Label("Cor:"), txtCor,
                 new Label("Km:"), txtKm,
                 new Label("CPF do Dono:"), txtCpfDono,
-                btnSalvar, btnExcluir
+                new HBox(10, btnLimpar, btnCadastrar, btnEditar, btnExcluir)
         );
         cmbTipo.setMaxWidth(250);
         txtMarca.setMaxWidth(250);
