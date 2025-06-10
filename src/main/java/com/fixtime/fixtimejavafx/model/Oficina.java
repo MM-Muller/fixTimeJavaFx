@@ -14,7 +14,7 @@ public class Oficina implements Serializable {
     private String endereco;
     private String senha;
 
-    public Oficina(int id, String nome, String categoria, String cnpj, String telefone, String email, String cep, String endereco, String senha) {
+    public Oficina(int id, String nome, String categoria, String cnpj, String telefone, String email, String cep, String endereco) {
         this.id = id;
         this.nome = nome;
         this.categoria = categoria;
@@ -23,7 +23,6 @@ public class Oficina implements Serializable {
         this.email = email;
         this.cep = cep;
         this.endereco = endereco;
-        this.senha = senha;
     }
 
     public int getId() {
@@ -80,12 +79,5 @@ public class Oficina implements Serializable {
     }
     public void setEndereco(String endereco) {
         this.endereco = endereco;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 }

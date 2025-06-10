@@ -66,8 +66,6 @@ public class OficinaView {
         TextField txtEndereco = new TextField();
         txtEndereco.setPromptText("Endereço completo");
 
-        PasswordField txtSenha = new PasswordField();
-        txtSenha.setPromptText("Senha para acesso");
 
         tabela.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
@@ -79,7 +77,6 @@ public class OficinaView {
                 txtEmail.setText(newSelection.getEmail());
                 txtCep.setText(newSelection.getCep());
                 txtEndereco.setText(newSelection.getEndereco());
-                txtSenha.setText(newSelection.getSenha());
             }
         });
 
@@ -87,7 +84,7 @@ public class OficinaView {
         btnCadastrar.setOnAction(e -> {
             if (txtNome.getText().isEmpty() || cmbCategoria.getValue() == null || txtCnpj.getText().isEmpty() ||
                     txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty() ||
-                    txtEndereco.getText().isEmpty() || txtSenha.getText().isEmpty()) {
+                    txtEndereco.getText().isEmpty()){
                 alert("Preencha todos os campos.");
                 return;
             }
@@ -121,12 +118,11 @@ public class OficinaView {
 
             try {
                 Oficina o = new Oficina(lista.size() + 1, txtNome.getText(), cmbCategoria.getValue(),
-                        cnpj, telefone, email, cep, txtEndereco.getText(), txtSenha.getText());
+                        cnpj, telefone, email, cep, txtEndereco.getText());
                 lista.add(o);
                 OficinaDAO.salvar(lista);
                 atualizarTabela();
                 limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
-                txtSenha.clear();
                 cmbCategoria.setValue(null);
                 alertInfo("Oficina cadastrada com sucesso!");
             } catch (Exception ex) {
@@ -144,7 +140,7 @@ public class OficinaView {
 
             if (txtNome.getText().isEmpty() || cmbCategoria.getValue() == null || txtCnpj.getText().isEmpty() ||
                     txtTelefone.getText().isEmpty() || txtEmail.getText().isEmpty() || txtCep.getText().isEmpty() ||
-                    txtEndereco.getText().isEmpty() || txtSenha.getText().isEmpty()) {
+                    txtEndereco.getText().isEmpty()) {
                 alert("Preencha todos os campos.");
                 return;
             }
@@ -184,13 +180,11 @@ public class OficinaView {
                 oficinaSelecionada.setEmail(email);
                 oficinaSelecionada.setCep(cep);
                 oficinaSelecionada.setEndereco(txtEndereco.getText());
-                oficinaSelecionada.setSenha(txtSenha.getText());
                 OficinaDAO.salvar(lista);
                 tabela.getItems().clear();
                 tabela.setItems(FXCollections.observableArrayList(lista));
                 tabela.getSelectionModel().clearSelection();
                 limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
-                txtSenha.clear();
                 cmbCategoria.setValue(null);
                 oficinaSelecionada = null;
                 alertInfo("Oficina atualizada com sucesso!");
@@ -209,7 +203,6 @@ public class OficinaView {
                     OficinaDAO.salvar(lista);
                     atualizarTabela();
                     limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
-                    txtSenha.clear();
                     cmbCategoria.setValue(null);
                     oficinaSelecionada = null;
                     alertInfo("Oficina excluída com sucesso!");
@@ -224,7 +217,6 @@ public class OficinaView {
         Button btnLimpar = new Button("Limpar");
         btnLimpar.setOnAction(e -> {
             limparCampos(txtNome, txtCnpj, txtTelefone, txtEmail, txtCep, txtEndereco);
-            txtSenha.clear();
             cmbCategoria.setValue(null);
             oficinaSelecionada = null;
             tabela.getSelectionModel().clearSelection();
@@ -273,7 +265,6 @@ public class OficinaView {
                 new Label("CEP:"), txtCep,
                 new Label("Endereço:"), txtEndereco,
                 new Label("Email:"), txtEmail,
-                new Label("Senha:"), txtSenha,
                 new HBox(10, btnLimpar, btnCadastrar, btnEditar, btnExcluir)
         );
         txtNome.setMaxWidth(250);
@@ -283,7 +274,6 @@ public class OficinaView {
         txtEmail.setMaxWidth(250);
         txtCep.setMaxWidth(250);
         txtEndereco.setMaxWidth(250);
-        txtSenha.setMaxWidth(250);
 
         BorderPane viewRoot = new BorderPane();
         viewRoot.setLeft(form);
