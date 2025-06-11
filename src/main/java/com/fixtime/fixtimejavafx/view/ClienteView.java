@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class ClienteView {
     private ArrayList<Cliente> lista = new ArrayList<>();
     private TableView<Cliente> tabela = new TableView<>();
-    private Cliente clienteEmEdicao = null; // Variável para controlar o cliente que está sendo editado
+    private Cliente clienteEmEdicao = null; // var para controlar o cliente que está sendo editado
 
     public Parent createView() {
         carregarClientes();
@@ -27,7 +27,7 @@ public class ClienteView {
 
         Label lblNome = new Label("Nome:");
         TextField txtNome = new TextField();
-        txtNome.setPromptText("Nome completo do cliente");
+        txtNome.setPromptText("Nome do cliente");
 
         Label lblCPF = new Label("CPF:");
         TextField txtCPF = new TextField();
@@ -42,7 +42,7 @@ public class ClienteView {
 
         Label lblTelefone = new Label("Telefone:");
         TextField txtTelefone = new TextField();
-        txtTelefone.setPromptText("Telefone (ex: DD9XXXXXXXX)");
+        txtTelefone.setPromptText("(ex: DD9XXXXXXXX)");
         txtTelefone.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             if (newText.matches("\\d{0,11}")) {
@@ -63,6 +63,7 @@ public class ClienteView {
                 return;
             }
 
+            String nome = txtNome.getText();
             String cpf = txtCPF.getText();
             String telefone = txtTelefone.getText();
             String email = txtEmail.getText();
@@ -84,12 +85,12 @@ public class ClienteView {
                 return;
             }
 
-            // Validação de CPF já cadastrado (exceto o próprio cliente em edição)
+            // validacao de CPF ja cadastrado (exceto o proprio cliente em edicao)
             if (lista.stream().anyMatch(c -> !c.equals(clienteEmEdicao) && c.getCpf().equals(cpf))) {
                 alert("CPF já cadastrado.");
                 return;
             }
-            // Validação de E-mail já cadastrado (exceto o próprio cliente em edição)
+
             if (lista.stream().anyMatch(c -> !c.equals(clienteEmEdicao) && c.getEmail().equalsIgnoreCase(email))) {
                 alert("E-mail já cadastrado.");
                 return;
@@ -97,12 +98,12 @@ public class ClienteView {
 
             boolean sucessoNoSalvamento = false;
             try {
-                if (clienteEmEdicao == null) { // Modo de Criação
-                    Cliente cliente = new Cliente(lista.size() + 1, txtNome.getText(), cpf, telefone, email);
+                if (clienteEmEdicao == null) {
+                    Cliente cliente = new Cliente(lista.size() + 1, nome, cpf, telefone, email);
                     lista.add(cliente);
                     alertInfo("Cliente salvo com sucesso!");
-                } else { // Modo de Edição
-                    clienteEmEdicao.setNome(txtNome.getText());
+                } else {
+                    clienteEmEdicao.setNome(nome);
                     clienteEmEdicao.setCpf(cpf);
                     clienteEmEdicao.setTelefone(telefone);
                     clienteEmEdicao.setEmail(email);
@@ -112,13 +113,13 @@ public class ClienteView {
                 sucessoNoSalvamento = true;
             } catch (Exception ex) {
                 alert("Erro ao salvar: " + ex.getMessage());
-                ex.printStackTrace();
+                ex.printStackTrace(); // aparece so pra mim
             } finally {
                 if (sucessoNoSalvamento) {
                     atualizarTabela();
                     limparCampos(txtNome, txtCPF, txtTelefone, txtEmail);
-                    clienteEmEdicao = null; // Limpa o cliente em edição
-                    btnSalvar.setText("Salvar"); // Volta o texto do botão
+                    clienteEmEdicao = null;
+                    btnSalvar.setText("Salvar");
                 } else {
                     System.out.println("Tentativa de salvar cliente falhou.");
                 }
@@ -137,25 +138,25 @@ public class ClienteView {
                 } catch (Exception ex) {
                     alert("Erro ao excluir: " + ex.getMessage());
                 } finally {
-                    limparCampos(txtNome, txtCPF, txtTelefone, txtEmail); // Limpa campos após exclusão
-                    clienteEmEdicao = null; // Zera cliente em edição
-                    btnSalvar.setText("Salvar"); // Volta o texto do botão
+                    limparCampos(txtNome, txtCPF, txtTelefone, txtEmail);
+                    clienteEmEdicao = null;
+                    btnSalvar.setText("Salvar");
                 }
             } else {
                 alert("Selecione um cliente para excluir.");
             }
         });
 
-        Button btnEditar = new Button("Editar Selecionado"); // Novo botão de edição
+        Button btnEditar = new Button("Editar Selecionado");
         btnEditar.setOnAction(e -> {
             Cliente selecionado = tabela.getSelectionModel().getSelectedItem();
             if (selecionado != null) {
-                clienteEmEdicao = selecionado; // Define o cliente para edição
+                clienteEmEdicao = selecionado;
                 txtNome.setText(selecionado.getNome());
                 txtCPF.setText(selecionado.getCpf());
                 txtTelefone.setText(selecionado.getTelefone());
                 txtEmail.setText(selecionado.getEmail());
-                btnSalvar.setText("Atualizar"); // Muda o texto do botão Salvar
+                btnSalvar.setText("Atualizar");
                 alertInfo("Modifique os campos e clique em 'Atualizar'.");
             } else {
                 alert("Selecione um cliente para editar.");
@@ -165,19 +166,19 @@ public class ClienteView {
 
         TableColumn<Cliente, String> colNome = new TableColumn<>("Nome");
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colNome.setPrefWidth(120);
+        colNome.setPrefWidth(100);
 
         TableColumn<Cliente, String> colEmail = new TableColumn<>("Email");
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colEmail.setPrefWidth(150);
+        colEmail.setPrefWidth(120);
 
         TableColumn<Cliente, String> colTelefone = new TableColumn<>("Telefone");
         colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
-        colTelefone.setPrefWidth(100);
+        colTelefone.setPrefWidth(80);
 
         TableColumn<Cliente, String> colCPF = new TableColumn<>("CPF");
         colCPF.setCellValueFactory(new PropertyValueFactory<>("cpf"));
-        colCPF.setPrefWidth(100);
+        colCPF.setPrefWidth(80);
 
         tabela.getColumns().addAll(colNome, colEmail, colTelefone, colCPF);
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -187,7 +188,7 @@ public class ClienteView {
         form.setAlignment(Pos.TOP_LEFT);
         form.getChildren().addAll(lblNome, txtNome, lblCPF, txtCPF, lblTelefone, txtTelefone,
                 lblEmail, txtEmail,
-                btnSalvar, btnEditar, btnExcluir); // Adicionado btnEditar
+                btnSalvar, btnEditar, btnExcluir);
         txtNome.setMaxWidth(250);
         txtCPF.setMaxWidth(250);
         txtTelefone.setMaxWidth(250);

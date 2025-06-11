@@ -66,7 +66,7 @@ public class MenuPrincipal extends Application {
 
     private void showClienteView() {
         ClienteView clienteView = new ClienteView();
-        Parent clienteContent = clienteView.createView(); // Chama o método createView()
+        Parent clienteContent = clienteView.createView();
 
         rootLayout.setCenter(clienteContent);
 
