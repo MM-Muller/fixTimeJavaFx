@@ -67,7 +67,6 @@ public class MenuPrincipal extends Application {
     private void showClienteView() {
         ClienteView clienteView = new ClienteView();
         Parent clienteContent = clienteView.createView();
-
         rootLayout.setCenter(clienteContent);
 
         primaryStage.setTitle("Sistema FixTime - Gerenciar Clientes");

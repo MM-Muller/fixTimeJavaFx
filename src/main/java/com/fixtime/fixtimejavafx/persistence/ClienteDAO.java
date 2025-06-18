@@ -18,7 +18,6 @@ public class ClienteDAO{
     }
 
     public static ArrayList<Cliente> carregar() throws IOException, ClassNotFoundException {
-        // lê os bytes do arquivo e então transforma em objetos Cliente
         File file = new File(FILE_NAME);
         if (!file.exists()) return new ArrayList<>();
 

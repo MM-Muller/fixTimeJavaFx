@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class ClienteView {
     private ArrayList<Cliente> lista = new ArrayList<>();
     private TableView<Cliente> tabela = new TableView<>();
-    private Cliente clienteEmEdicao = null; // var para controlar o cliente que está sendo editado
+    private Cliente clienteEmEdicao = null;
 
     public Parent createView() {
         carregarClientes();
@@ -181,7 +181,7 @@ public class ClienteView {
         colCPF.setPrefWidth(80);
 
         tabela.getColumns().addAll(colNome, colEmail, colTelefone, colCPF);
-        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // redimensionamento da tabela com o tamanho da tela
 
         VBox form = new VBox(10);
         form.setPadding(new Insets(20));
@@ -217,6 +217,7 @@ public class ClienteView {
 
     private void atualizarTabela() {
         tabela.setItems(FXCollections.observableArrayList(lista));
+        tabela.refresh();
     }
 
     private void limparCampos(TextField... campos) {
